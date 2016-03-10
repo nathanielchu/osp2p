@@ -14,31 +14,49 @@ void add(long long *pointer, long long value) {
 	*pointer = sum;
 }
 
-typedef struct threadarg {
-	int niterations;
+void add_mutex(long long *pointer, long long value) {
+	if (pthread_mutex_lock(&mutex) != 0) {
+		fprintf(stderr, "Error locking mutex.\n");
+		return;
+	}
 
-	long long *pointer;
+	long long sum = *pointer + value;
+	if (opt_yield)
+		pthread_yield();
+	*pointer = sum;
 
-	// Choose which add function to run.
-	void (*addfunc)(long long *pointer, long long value);
-} threadarg_t;
+	pthread_mutex_unlock(&mutex);
+}
+
+void add_spinlock(long long *pointer, long long value) {
+	long long sum = *pointer + value;
+	if (opt_yield)
+		pthread_yield();
+	*pointer = sum;
+}
+
+void add_cas(long long *pointer, long long value) {
+	long long sum = *pointer + value;
+	if (opt_yield)
+		pthread_yield();
+	*pointer = sum;
+}
 
 void *process(void *arg) {
-	threadarg_t *threadarg = arg;
+	long long *pointer = arg;
 	int i;
 	// Add 1.
-	for (i = 0; i < threadarg->niterations; i++) {
-		threadarg->addfunc(threadarg->pointer, 1);
+	for (i = 0; i < niterations; i++) {
+		addfunc(pointer, 1);
 	}
 	// Add -1.
-	for (i = 0; i < threadarg->niterations; i++) {
-		threadarg->addfunc(threadarg->pointer, -1);
+	for (i = 0; i < niterations; i++) {
+		addfunc(pointer, -1);
 	}
 	return 0;
 }
 
 int main(int argc, char *argv[]) {
-	int nthreads = 1, niterations = 1;
 	int opt;
 	while ((opt = getopt_long(argc, argv, "", options, NULL)) != -1) {
 		switch (opt) {
@@ -57,6 +75,20 @@ int main(int argc, char *argv[]) {
 				}
 				break;
 			}
+			case ADDTEST_SYNC:
+			{
+				switch(optarg[0]) {
+					case 'm':
+						addfunc = add_mutex;
+						if (pthread_mutex_init(&mutex, NULL) != 0) {
+							fprintf(stderr, "Error initializing mutex.\n");
+							return 1;
+						}
+						break;
+					case 's': addfunc = add_spinlock; break;
+					case 'c': addfunc = add_cas; break;
+				}
+			}
 		}
 	}
 
@@ -73,36 +105,33 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Error allocating thread array.\n");
 		return 1;
 	}
-	threadarg_t *threadargs = malloc(sizeof(threadarg_t) * nthreads);
-	if (threadargs == NULL && nthreads > 0) {
-		fprintf(stderr, "Error allocating threadargs array.\n");
+	// Keep track of return status from pthread_create in case it fails.
+	int *threadstatus = malloc(sizeof(int) * nthreads);
+	if (threadstatus == NULL && nthreads > 0) {
+		fprintf(stderr, "Error allocating threadstatus array.\n");
 		free(threads);
 		return 1;
 	}
 
 	int i;
 	for (i = 0; i < nthreads; i++) {
-		threadargs[i] = (threadarg_t) { niterations, &counter, add };
-		if (pthread_create(&threads[i], NULL, process, &threadargs[i]) != 0) {
+		threadstatus[i] = pthread_create(&threads[i], NULL, process, &counter);
+		if (threadstatus[i] != 0) {
 			if (errno == EAGAIN) {
 				fprintf(stderr, "Too many threads? errno=EAGAIN\n");
 			}
-			fprintf(stderr, "Error creating thread %u; proceeding to next thread.\n", i);
-			// Indicate that this thread failed to be created.
-			threadargs[i].addfunc = NULL;
+			fprintf(stderr, "Error creating thread %d; proceeding to next thread.\n", i);
 		}
 	}
 	for (i = 0; i < nthreads; i++) {
-		// If the thread was successfully created.
-		if (threadargs[i].addfunc != NULL) {
-			if (pthread_join(threads[i], NULL) != 0) {
-				fprintf(stderr, "Error waiting for thread %u; proceeding to next thread.\n", i);
-			}
+		// Make sure thread was successfully created.
+		if (threadstatus[i] == 0 && pthread_join(threads[i], NULL) != 0) {
+			fprintf(stderr, "Error waiting for thread %d; proceeding to next thread.\n", i);
 		}
 	}
 
 	free(threads);
-	free(threadargs);
+	free(threadstatus);
 
 	struct timespec end_time;
 	if (clock_gettime(CLOCK_MONOTONIC, &end_time) != 0) {
@@ -111,6 +140,10 @@ int main(int argc, char *argv[]) {
 	}
 	if (counter != 0) {
 		fprintf(stderr, "ERROR: final count = %lld\n", counter);
+	}
+
+	if (addfunc == add_mutex && pthread_mutex_destroy(&mutex) != 0) {
+		fprintf(stderr, "Error destroying mutex.\n");
 	}
 
 	int noperations = nthreads * niterations * 2;
