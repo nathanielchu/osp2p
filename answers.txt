@@ -1,0 +1,14 @@
+Questions 1.1
+1. 100 threads, 500 iterations; or 2 threads, 5000 iterations fail pretty consistently. We need to have several threads and many iterations to have enough of a chance of a thread being interrupted at the right moment in the middle of its summation, which would expose the race condition.
+
+2. With few iterations, threads are likely to finish executing before a clock interrupt. In other words, the conditions for the race condition are unlikely to occur.
+
+
+Questions 1.2
+1. With increasing iterations, the overhead time of the parent program contributes less to the total elapsed time, so the time per operation more accurately reflects the time needed just for the addition, which is relatively fast.
+
+2. The "correct" cost is the time per operation as the number of iterations approaches infinity, which would make the overhead time negligible. In this case, it appears to be around 8 nanoseconds.
+
+3. --yield takes more time since the program traps and possibly context switches in every single iteration, adding a large amount of overhead.
+
+4. Valid timings cannot really be obtained with --yield, since the overhead of trapping/context switching happens with every iteration (i.e. it scales with the number of iterations). The overhead of the parent process, on the other hand, is constant, and can be reduced by increasing the number of iterations.

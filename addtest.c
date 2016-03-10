@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 199309L
+#define _GNU_SOURCE
 #include <errno.h>
 #include <getopt.h>
 #include <pthread.h>
@@ -9,6 +9,8 @@
 
 void add(long long *pointer, long long value) {
 	long long sum = *pointer + value;
+	if (opt_yield)
+		pthread_yield();
 	*pointer = sum;
 }
 
@@ -40,15 +42,17 @@ int main(int argc, char *argv[]) {
 	int opt;
 	while ((opt = getopt_long(argc, argv, "", options, NULL)) != -1) {
 		switch (opt) {
-			case ADDTEST_THREADS: case ADDTEST_ITERATIONS:
+			case ADDTEST_THREADS: case ADDTEST_ITERATIONS: case ADDTEST_YIELD:
 			{
 				errno = 0;
 				int temp = strtol(optarg, NULL, 10);
 				if (temp >= 0 && errno == 0) {
 					if (opt == ADDTEST_THREADS) {
 						nthreads = temp;
-					} else {
+					} else if (opt == ADDTEST_ITERATIONS) {
 						niterations = temp;
+					} else {
+						opt_yield = (temp != 0);
 					}
 				}
 				break;
