@@ -14,7 +14,7 @@ Questions 1.2
 4. Valid timings cannot really be obtained with --yield, since the overhead of trapping/context switching happens with every iteration (i.e. it scales with the number of iterations). The overhead of the parent process, on the other hand, is constant, and can be reduced by increasing the number of iterations.
 
 Questions 1.3
-1. All of the options perform similarly for low numbers of threads because threads do not attempt to get a lock and fail as often when there are low numbers of threads. The main difference between these options is how they implement the locking.
+1. All of the options perform similarly for low numbers of threads because for low numbers of threads the situation where a thread attempts to get a lock and does not succeed does not occur as often. The main difference between these options is their implementation in addressing this situation.
 
 2. The three protected operations slow down as the number of threads rises because as the number of threads rises the situation where a thread attempts to get a lock and does not succeed increases.
 
