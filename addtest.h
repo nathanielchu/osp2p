@@ -24,3 +24,4 @@ int opt_yield = 0;
 void (*addfunc)(long long *pointer, long long value) = add;
 
 pthread_mutex_t mutex;
+volatile int lock = 0;

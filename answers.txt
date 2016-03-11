@@ -12,3 +12,10 @@ Questions 1.2
 3. --yield takes more time since the program traps and possibly context switches in every single iteration, adding a large amount of overhead.
 
 4. Valid timings cannot really be obtained with --yield, since the overhead of trapping/context switching happens with every iteration (i.e. it scales with the number of iterations). The overhead of the parent process, on the other hand, is constant, and can be reduced by increasing the number of iterations.
+
+Questions 1.3
+1. All of the options perform similarly for low numbers of threads because threads do not attempt to get a lock and fail as often when there are low numbers of threads. The main difference between these options is how they implement the locking.
+
+2. The three protected operations slow down as the number of threads rises because as the number of threads rises the situation where a thread attempts to get a lock and does not succeed increases.
+
+3. Spin-locks are so expensive for large numebers of threads because when a thread tries to lock a spin-lock and it does not succeed, it will continuously re-try locking it, until it finally succeeds. As the number of threads increases, the situation where a thread attempts to lock a spin-lock and does not succeed increases. Thus, for large numbers of threads spin-locks are very expensive because the polling will constantly waste a lot of CPU time.

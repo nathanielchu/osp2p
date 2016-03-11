@@ -29,17 +29,25 @@ void add_mutex(long long *pointer, long long value) {
 }
 
 void add_spinlock(long long *pointer, long long value) {
+	while(__sync_lock_test_and_set(&lock, 1)) while (lock);
+
 	long long sum = *pointer + value;
 	if (opt_yield)
 		pthread_yield();
 	*pointer = sum;
+
+	__sync_lock_release(&lock);
 }
 
 void add_cas(long long *pointer, long long value) {
-	long long sum = *pointer + value;
-	if (opt_yield)
-		pthread_yield();
-	*pointer = sum;
+	long long sum;
+	long long oldval;
+	do {
+		oldval = *pointer;
+		sum = oldval + value;
+		if (opt_yield)
+			pthread_yield();
+	} while (__sync_val_compare_and_swap(pointer, oldval, sum) != oldval);;
 }
 
 void *process(void *arg) {
