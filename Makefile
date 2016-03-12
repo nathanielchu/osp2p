@@ -14,4 +14,4 @@ sltest: sltest.c sltest.h SortedList.c SortedList.h
 .PHONY: default all clean
 
 clean:
-	rm -f *.tar.gz *.o addtest
+	rm -f *.tar.gz *.o addtest sltest

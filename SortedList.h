@@ -1,6 +1,8 @@
 #ifndef SORTEDLISTH
 #define SORTEDLISTH
 
+#include <pthread.h>
+
 /*
  * SortedList (and SortedListElement)
  *
@@ -84,11 +86,18 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
 int SortedList_length(SortedList_t *list);
 
 /**
- * variable to enable diagnositc calls to pthread_yield
+ * variable to enable diagnostic calls to pthread_yield
  */
 extern int opt_yield;
 #define	INSERT_YIELD	0x01	// yield in insert critical section
 #define	DELETE_YIELD	0x02	// yield in delete critical section
 #define	SEARCH_YIELD	0x04	// yield in lookup/length critical section
+
+#define SYNC_NONE 10
+#define SYNC_MUTEX 11
+#define SYNC_SPINLOCK 12
+extern int sync;
+pthread_mutex_t slmutex;
+volatile int sllock;
 
 #endif
