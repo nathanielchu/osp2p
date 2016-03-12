@@ -3,6 +3,8 @@ Questions 1.1
 
 2. With few iterations, threads are likely to finish executing before a clock interrupt. In other words, the conditions for the race condition are unlikely to occur.
 
+see timing1.1_time_iter.txt and plot1.1_time_iter.pdf for the timing and graph of time per operation against number of iterations. These timings were measured with --yield disabled.
+
 
 Questions 1.2
 1. With increasing iterations, the overhead time of the parent program contributes less to the total elapsed time, so the time per operation more accurately reflects the time needed just for the addition, which is relatively fast.
@@ -13,13 +15,15 @@ Questions 1.2
 
 4. Valid timings cannot really be obtained with --yield, since the overhead of trapping/context switching happens with every iteration (i.e. it scales with the number of iterations). The overhead of the parent process, on the other hand, is constant, and can be reduced by increasing the number of iterations.
 
+
 Questions 1.3
-1. All of the options perform similarly for low numbers of threads because for low numbers of threads the situation where a thread attempts to get a lock and does not succeed does not occur as often. The main difference between these options is their implementation in addressing this situation.
+1. All of the options perform similarly for low numbers of threads because for low numbers of threads the situation where a thread attempts to get a lock and does not succeed becomes more likely. The main difference between these options is their implementation in addressing this situation.
 
 2. The three protected operations slow down as the number of threads rises because as the number of threads rises the situation where a thread attempts to get a lock and does not succeed increases.
 
-3. Spin-locks are so expensive for large numebers of threads because when a thread tries to lock a spin-lock and it does not succeed, it will continuously re-try locking it, until it finally succeeds. As the number of threads increases, the situation where a thread attempts to lock a spin-lock and does not succeed increases. Thus, for large numbers of threads spin-locks are very expensive because the polling will constantly waste a lot of CPU time.
+3. Spin-locks are so expensive for large numbers of threads because when a thread tries to lock a spin-lock and it does not succeed, it will continuously re-try locking it, until it finally succeeds. As the number of threads increases, the situation where a thread attempts to lock a spin-lock and does not succeed increases. Thus, for large numbers of threads spin-locks are very expensive because the polling will constantly waste a lot of CPU time.
 
+Note: see timing1.3_time_threads.txt and plot1.3_time_threads.pdf for the timing and graph of time per operation against number of threads. These timings were measured with --yield enabled.
 
 
 Questions 3-1
