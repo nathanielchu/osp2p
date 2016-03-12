@@ -3,7 +3,7 @@ Questions 1.1
 
 2. With few iterations, threads are likely to finish executing before a clock interrupt. In other words, the conditions for the race condition are unlikely to occur.
 
-see timing1.1_time_iter.txt and plot1.1_time_iter.pdf for the timing and graph of time per operation against number of iterations. These timings were measured with --yield disabled.
+Note: see timing1.1_time_iter.txt and plot1.1_time_iter.pdf for the timing and graph of time per operation against number of iterations. These timings were measured with --yield disabled.
 
 
 Questions 1.2
