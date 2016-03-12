@@ -47,7 +47,7 @@ void add_cas(long long *pointer, long long value) {
 		sum = oldval + value;
 		if (opt_yield)
 			pthread_yield();
-	} while (__sync_val_compare_and_swap(pointer, oldval, sum) != oldval);;
+	} while (__sync_val_compare_and_swap(pointer, oldval, sum) != oldval);
 }
 
 void *process(void *arg) {
