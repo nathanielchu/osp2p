@@ -121,6 +121,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	int status = 0;
 	int i;
 	for (i = 0; i < nthreads; i++) {
 		threadstatus[i] = pthread_create(&threads[i], NULL, process, &counter);
@@ -129,12 +130,14 @@ int main(int argc, char *argv[]) {
 				fprintf(stderr, "Too many threads? errno=EAGAIN\n");
 			}
 			fprintf(stderr, "Error creating thread %d; proceeding to next thread.\n", i);
+			status = 1;
 		}
 	}
 	for (i = 0; i < nthreads; i++) {
 		// Make sure thread was successfully created.
 		if (threadstatus[i] == 0 && pthread_join(threads[i], NULL) != 0) {
 			fprintf(stderr, "Error waiting for thread %d; proceeding to next thread.\n", i);
+			status = 1;
 		}
 	}
 
@@ -148,10 +151,12 @@ int main(int argc, char *argv[]) {
 	}
 	if (counter != 0) {
 		fprintf(stderr, "ERROR: final count = %lld\n", counter);
+		status = 1;
 	}
 
 	if (addfunc == add_mutex && pthread_mutex_destroy(&mutex) != 0) {
 		fprintf(stderr, "Error destroying mutex.\n");
+		status = 1;
 	}
 
 	int noperations = nthreads * niterations * 2;
@@ -159,4 +164,6 @@ int main(int argc, char *argv[]) {
 	long totaltime = (end_time.tv_sec - start_time.tv_sec) * 1000000000 + (end_time.tv_nsec - start_time.tv_nsec);
 	printf("elapsed time: %ld ns\n", totaltime);
 	printf("per operation: %ld ns\n", totaltime / noperations);
+
+	return status;
 }
