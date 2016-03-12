@@ -1,3 +1,10 @@
+Collaborators:
+Nathan Chou, 104-453-049
+Nathaniel Chu, 304-449-551
+
+================================
+
+
 Questions 1.1
 1. 100 threads, 500 iterations; or 2 threads, 5000 iterations fail pretty consistently. We need to have several threads and many iterations to have enough of a chance of a thread being interrupted at the right moment in the middle of its summation, which would expose the race condition.
 
